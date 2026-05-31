@@ -285,7 +285,7 @@ dependencies = [
 
 [[package]]
 name = "ruststream"
-version = "0.0.1-dev"
+version = "0.1.0"
 dependencies = [
  "bytes",
  "futures",
@@ -300,7 +300,7 @@ dependencies = [
 
 [[package]]
 name = "ruststream-py"
-version = "0.0.1-dev"
+version = "0.1.0"
 dependencies = [
  "pyo3",
  "pyo3-async-runtimes",
@@ -312,7 +312,7 @@ dependencies = [
 
 [[package]]
 name = "ruststream-pyo3"
-version = "0.0.1-dev"
+version = "0.1.0"
 dependencies = [
  "futures",
  "pyo3",

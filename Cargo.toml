@@ -6,7 +6,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.0.1-dev"
+version = "0.1.0"
 edition = "2024"
 rust-version = "1.85"
 license = "Apache-2.0"
@@ -19,7 +19,7 @@ ruststream-pyo3 = { path = "crates/ruststream-pyo3" }
 # Single facade crate. Sibling layout assumed: ruststream/ next to ruststream-py/.
 # Flip the path to a crates.io version range once ruststream 0.1 is published.
 # Members enable the features they need via `features = [...]` on top of this base spec.
-ruststream = { path = "../ruststream", default-features = false }
+ruststream = { version = ">=0.1.0, <0.2.0", path = "../ruststream", default-features = false }
 
 bytes = "1"
 futures = "0.3"

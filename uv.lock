@@ -1708,7 +1708,7 @@ wheels = [
 
 [[package]]
 name = "ruststream"
-version = "0.0.1.dev0"
+version = "0.1.0"
 source = { editable = "py/ruststream-py" }
 
 [package.optional-dependencies]

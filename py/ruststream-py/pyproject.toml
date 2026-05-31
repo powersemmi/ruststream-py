@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "ruststream"
-version = "0.0.1.dev0"
+version = "0.1.0"
 description = "Python bindings for the RustStream messaging framework."
 readme = "README.md"
 requires-python = ">=3.11,<3.15"
