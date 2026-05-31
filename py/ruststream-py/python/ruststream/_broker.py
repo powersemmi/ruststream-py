@@ -449,8 +449,8 @@ class Broker(ABC):
         start = loop.time()
         async with self._context.enter_local(
             topic=topic,
-            headers=dict(message.headers),
-            raw_payload=bytes(message.payload),
+            headers=message.headers,
+            raw_payload=message.payload,
         ):
             try:
                 await handler(message)

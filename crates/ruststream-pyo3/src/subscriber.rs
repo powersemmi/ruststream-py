@@ -23,7 +23,7 @@ where
     S::Message: PyIncomingMessage + 'static,
     S::Error: std::fmt::Display + Send + 'static,
 {
-    let (tx, rx) = mpsc::channel::<Box<dyn PyIncomingMessage>>(64);
+    let (tx, rx) = mpsc::channel::<Box<dyn PyIncomingMessage>>(4096);
     let cancel = CancellationToken::new();
     let cancel_clone = cancel.clone();
     tokio::spawn(async move {
