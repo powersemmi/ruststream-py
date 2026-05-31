@@ -10,13 +10,13 @@ version = "0.0.1-dev"
 edition = "2024"
 rust-version = "1.85"
 license = "Apache-2.0"
-repository = "https://github.com/ruststream/ruststream-py"
+repository = "https://github.com/powersemmi/ruststream-py"
 authors = ["RustStream contributors"]
 
 [workspace.dependencies]
 ruststream-pyo3 = { path = "crates/ruststream-pyo3" }
 
-# Single facade crate. Sibling layout assumed: ruststream-rs/ next to ruststream-py/.
+# Single facade crate. Sibling layout assumed: ruststream/ next to ruststream-py/.
 # Flip the path to a crates.io version range once ruststream 0.1 is published.
 # Members enable the features they need via `features = [...]` on top of this base spec.
 ruststream = { path = "../ruststream", default-features = false }

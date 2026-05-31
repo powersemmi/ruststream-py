@@ -45,8 +45,8 @@ fastapi = ["fastapi>=0.110"]
 ruststream = "ruststream.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/moloko/RustStream"
-Repository = "https://github.com/moloko/RustStream"
+Homepage = "https://github.com/powersemmi/ruststream-py"
+Repository = "https://github.com/powersemmi/ruststream-py"
 
 [tool.maturin]
 python-source = "python"
