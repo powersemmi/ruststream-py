@@ -1,0 +1,147 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rust:
+    name: Rust ${{ matrix.toolchain }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain: [stable, "1.85"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          path: ruststream-py
+
+      - uses: actions/checkout@v4
+        with:
+          repository: ruststream/ruststream-rs
+          persist-credentials: false
+          path: ruststream-rs
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          components: rustfmt, clippy
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ruststream-py
+
+      - name: cargo fmt
+        if: matrix.toolchain == 'stable'
+        working-directory: ruststream-py
+        run: cargo fmt --all -- --check
+
+      - name: cargo clippy
+        if: matrix.toolchain == 'stable'
+        working-directory: ruststream-py
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+
+      - name: cargo check (all features)
+        working-directory: ruststream-py
+        run: cargo check --workspace --all-targets --all-features
+
+  python:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          path: ruststream-py
+
+      - uses: actions/checkout@v4
+        with:
+          repository: ruststream/ruststream-rs
+          persist-credentials: false
+          path: ruststream-rs
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ruststream-py
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        working-directory: ruststream-py
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Sync dependencies
+        working-directory: ruststream-py
+        run: uv sync
+
+      - name: Build native extension
+        working-directory: ruststream-py
+        run: uv run maturin develop --manifest-path py/ruststream-py/Cargo.toml
+
+      - name: ruff check
+        working-directory: ruststream-py
+        run: uv run ruff check .
+
+      - name: ruff format check
+        working-directory: ruststream-py
+        run: uv run ruff format --check .
+
+      - name: mypy
+        working-directory: ruststream-py
+        run: uv run mypy
+
+      - name: pytest
+        working-directory: ruststream-py
+        run: uv run pytest
+
+  security:
+    name: Security scans
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Sync dependencies
+        run: uv sync
+
+      - name: codespell
+        run: uv run codespell
+
+      - name: bandit
+        run: uv run bandit -r py -c pyproject.toml
+
+      - name: semgrep
+        run: uv run semgrep scan --config "p/python" --config "p/security-audit" --error --quiet py
+
+      - name: zizmor
+        run: uv run zizmor .github/workflows

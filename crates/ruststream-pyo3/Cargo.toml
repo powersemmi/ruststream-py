@@ -1,0 +1,23 @@
+[package]
+name = "ruststream-pyo3"
+description = "Shared PyO3 helpers used by RustStream Python binding wheels."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+readme = "README.md"
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+ruststream = { workspace = true, default-features = false }
+futures.workspace = true
+pyo3.workspace = true
+pyo3-async-runtimes.workspace = true
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "sync"] }
+tokio-util.workspace = true
+tracing.workspace = true

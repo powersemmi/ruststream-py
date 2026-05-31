@@ -1,0 +1,50 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/ruststream-pyo3",
+    "py/ruststream-py",
+]
+
+[workspace.package]
+version = "0.0.1-dev"
+edition = "2024"
+rust-version = "1.85"
+license = "Apache-2.0"
+repository = "https://github.com/ruststream/ruststream-py"
+authors = ["RustStream contributors"]
+
+[workspace.dependencies]
+ruststream-pyo3 = { path = "crates/ruststream-pyo3" }
+
+# Single facade crate. Sibling layout assumed: ruststream-rs/ next to ruststream-py/.
+# Flip the path to a crates.io version range once ruststream 0.1 is published.
+# Members enable the features they need via `features = [...]` on top of this base spec.
+ruststream = { path = "../ruststream-rs", default-features = false }
+
+bytes = "1"
+futures = "0.3"
+pyo3 = { version = "0.24", features = ["abi3-py311"] }
+pyo3-async-runtimes = { version = "0.24", features = ["tokio-runtime"] }
+thiserror = "2"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "signal"] }
+tokio-util = { version = "0.7", features = ["rt"] }
+tracing = "0.1"
+
+[workspace.lints.rust]
+unsafe_op_in_unsafe_fn = "deny"
+unreachable_pub = "deny"
+missing_docs = "deny"
+missing_debug_implementations = "warn"
+unused_qualifications = "warn"
+
+[workspace.lints.clippy]
+correctness = { level = "deny", priority = -1 }
+suspicious = { level = "deny", priority = -1 }
+perf = { level = "deny", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+cargo = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+missing_const_for_fn = "allow"
+multiple_crate_versions = "allow"
+redundant_pub_crate = "allow"
