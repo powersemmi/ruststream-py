@@ -16,9 +16,8 @@ from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass, field
 from typing import Annotated, Any, NamedTuple
 
+from ruststream._interfaces import IncomingMessage, Subscriber
 from ruststream._message import Message
-from ruststream._native import Message as _NativeMessage
-from ruststream._native import Subscriber
 from ruststream._signature import _Dependency, _positional_params, collect_dependencies
 from ruststream.codecs import Codec, resolve_codec
 from ruststream.context import ContextRepo
@@ -361,7 +360,7 @@ class Broker(ABC):
 
         if payload_type is None or payload_type in _RAW_PAYLOAD_TYPES:
 
-            async def wrapped_raw(msg: _NativeMessage) -> Any:
+            async def wrapped_raw(msg: IncomingMessage) -> Any:
                 return await original(Message(msg, codec))
 
             wrapped_raw.__wrapped__ = original  # type: ignore[attr-defined]
@@ -375,7 +374,7 @@ class Broker(ABC):
                 "register one via `register_validator` or install the matching extra",
             )
 
-        async def wrapped(msg: _NativeMessage) -> Any:
+        async def wrapped(msg: IncomingMessage) -> Any:
             decoded = codec.decode(bytes(msg.payload))
             value = validator.decode(decoded, payload_type)
             return await original(value)
@@ -419,7 +418,7 @@ class Broker(ABC):
             for target in targets
         )
 
-        async def wrapped(msg: _NativeMessage) -> Any:
+        async def wrapped(msg: IncomingMessage) -> Any:
             result = await handler(msg)
             if result is None:
                 return None
@@ -444,7 +443,7 @@ class Broker(ABC):
             subscriber.close()
             raise
 
-    async def _handle(self, message: _NativeMessage, handler: Handler, topic: str) -> None:
+    async def _handle(self, message: IncomingMessage, handler: Handler, topic: str) -> None:
         loop = asyncio.get_event_loop()
         self._metrics.record_received(topic)
         start = loop.time()

@@ -24,7 +24,7 @@ ruststream-py/
 └── pyproject.toml          (uv workspace, dev tooling, ruff/mypy/pytest)
 ```
 
-The Rust crates (`ruststream-core`, `ruststream-runtime`, `ruststream-conformance`) are sourced from the sibling [`ruststream-rs`](https://github.com/ruststream/ruststream-rs) repository via path dependencies. Layout assumed: both repos cloned side by side. Path deps flip to crates.io ranges once `ruststream-core 0.1` is published.
+The framework crate `ruststream` is sourced from the sibling [`ruststream`](https://github.com/ruststream/ruststream) repository via a path dependency. Layout assumed: both repos cloned side by side. The path dep flips to a crates.io range once `ruststream 0.1` is published.
 
 ## Quick start
 

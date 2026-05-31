@@ -16,14 +16,11 @@ positional parameter is annotated as :class:`Message` or left unannotated.
 """
 
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
+from ruststream._interfaces import IncomingMessage
 from ruststream.codecs import Codec
 from ruststream.validators import resolve_validator
-
-if TYPE_CHECKING:
-    from ruststream._native import Message as _NativeMessage
-
 
 _UNSET: Any = object()
 
@@ -39,7 +36,7 @@ class Message:
 
     __slots__ = ("_codec", "_decoded", "_raw")
 
-    def __init__(self, raw: "_NativeMessage", codec: Codec) -> None:
+    def __init__(self, raw: IncomingMessage, codec: Codec) -> None:
         self._raw = raw
         self._codec = codec
         self._decoded: Any = _UNSET
