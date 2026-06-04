@@ -18,7 +18,7 @@ crate-type = ["cdylib", "rlib"]
 workspace = true
 
 [dependencies]
-ruststream = { workspace = true, features = ["runtime", "json", "memory"] }
+ruststream = { workspace = true, features = ["json", "memory"] }
 ruststream-pyo3.workspace = true
 pyo3.workspace = true
 pyo3-async-runtimes.workspace = true

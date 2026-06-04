@@ -9,14 +9,15 @@
 //! The runtime is built once and locked for the lifetime of the process, so configuration
 //! has to be in place *before* any `RustStream` native module is imported.
 //!
-//! * `RUSTSTREAM_TOKIO_WORKER_THREADS` -- positive integer. `1` switches to the
-//!   `current_thread` scheduler (lowest overhead, suitable for ASGI servers like
-//!   `uvicorn --workers 1`). Any larger value forces a multi-thread scheduler with that
-//!   many worker threads. Unset / zero / non-numeric values keep the default
-//!   multi-thread scheduler with as many workers as Tokio picks heuristically.
-//! * `RUSTSTREAM_TOKIO_THREAD_NAME` -- string used as a prefix for worker thread names
-//!   in the multi-thread scheduler. Defaults to `ruststream-py`. Ignored in
-//!   `current_thread` mode.
+//! * `RUSTSTREAM_TOKIO_WORKER_THREADS` -- positive integer pinning the number of worker
+//!   threads. `1` gives a single worker thread (lowest footprint, suitable for ASGI servers
+//!   like `uvicorn --workers 1`). Unset / zero / non-numeric values keep the default
+//!   multi-thread scheduler with as many workers as Tokio picks heuristically. The runtime
+//!   is always a multi-thread scheduler: `pyo3-async-runtimes` drives spawned futures from
+//!   the runtime's own worker threads, so a `current_thread` runtime (which only progresses
+//!   inside `block_on`) would leave those futures unpolled.
+//! * `RUSTSTREAM_TOKIO_THREAD_NAME` -- string used as a prefix for worker thread names.
+//!   Defaults to `ruststream-py`.
 
 use std::sync::OnceLock;
 
@@ -39,23 +40,15 @@ fn thread_name() -> String {
 }
 
 fn build_runtime() -> Runtime {
-    match read_worker_threads() {
-        Some(1) => Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .expect("failed to build the current-thread Tokio runtime"),
-        Some(n) => Builder::new_multi_thread()
-            .worker_threads(n)
-            .enable_all()
-            .thread_name(thread_name())
-            .build()
-            .expect("failed to build the multi-thread Tokio runtime"),
-        None => Builder::new_multi_thread()
-            .enable_all()
-            .thread_name(thread_name())
-            .build()
-            .expect("failed to build the multi-thread Tokio runtime"),
+    let mut builder = Builder::new_multi_thread();
+    if let Some(n) = read_worker_threads() {
+        builder.worker_threads(n);
     }
+    builder
+        .enable_all()
+        .thread_name(thread_name())
+        .build()
+        .expect("failed to build the multi-thread Tokio runtime")
 }
 
 /// Builds (once per shared object) a Tokio runtime and hands it to

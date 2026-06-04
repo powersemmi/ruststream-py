@@ -12,7 +12,7 @@ import inspect
 import logging
 import typing
 from abc import ABC, abstractmethod
-from collections.abc import Awaitable, Callable, Sequence
+from collections.abc import Awaitable, Callable, Iterable, Sequence
 from dataclasses import dataclass, field
 from typing import Annotated, Any, NamedTuple
 
@@ -281,6 +281,29 @@ class Broker(ABC):
         active = resolve_codec(codec, fallback=self._default_codec)
         await self._publish(topic, active.encode(value))
 
+    async def publish_batch(
+        self,
+        topic: str,
+        values: Iterable[Any],
+        *,
+        codec: Codec | str | None = None,
+    ) -> None:
+        """Publish every item in `values` to `topic` through a single broker call.
+
+        Each value is encoded with the resolved codec, then the whole batch is handed to the
+        broker in one `_publish_batch` call. For brokers that batch natively (e.g. NATS, which
+        flushes once after enqueueing) this amortizes per-message overhead while keeping the
+        producer paced to the broker; the call still completes only once the batch is accepted,
+        so flow control is preserved. Ordering within the batch is retained.
+
+        Args:
+            topic: Destination topic.
+            values: Payloads to publish. Each is encoded like the `value` argument of `publish`.
+            codec: Override the broker's default codec for this batch.
+        """
+        active = resolve_codec(codec, fallback=self._default_codec)
+        await self._publish_batch(topic, (active.encode(value) for value in values))
+
     async def start(self) -> None:
         """Connect, open every registered subscription, and start dispatching."""
         if self._started:
@@ -496,6 +519,18 @@ class Broker(ABC):
     @abstractmethod
     async def _publish(self, topic: str, payload: bytes) -> None:
         """Send one message to `topic`. Called by `publish()` and by `@publisher` wrappers."""
+
+    async def _publish_batch(self, topic: str, payloads: Iterable[bytes]) -> None:
+        """Send many already-encoded messages to `topic`. Called by `publish_batch()`.
+
+        `payloads` is a single-pass iterable (often a generator that encodes lazily). The default
+        loops `_publish`, so it never materializes the batch; brokers whose client coalesces
+        writes override it to drain the iterable into one native batch call (and, where
+        applicable, a single flush) so the asyncio/runtime boundary is crossed once per batch
+        instead of once per message.
+        """
+        for payload in payloads:
+            await self._publish(topic, payload)
 
 
 __all__: tuple[str, ...] = ("Broker", "Handler", "Router")
