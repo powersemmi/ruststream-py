@@ -7,7 +7,7 @@ every broker's test client behaves identically.
 """
 
 from abc import ABC, abstractmethod
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from types import TracebackType
 from typing import Any, Protocol, TypedDict, runtime_checkable
 
@@ -84,7 +84,7 @@ class BrokerTestClient(ABC):
     __test__ = False
 
     _SESSION_LABEL = "test"
-    _TRANSPORT_METHODS = ("_open", "_close", "_subscribe", "_publish")
+    _TRANSPORT_METHODS = ("_open", "_close", "_subscribe", "_publish", "_publish_batch")
 
     def __init__(self, broker: Broker, *, with_real: bool = False) -> None:
         self._broker = broker
@@ -134,12 +134,19 @@ class BrokerTestClient(ABC):
         async def _publish(topic: str, payload: bytes) -> None:
             await stub.publish(topic, payload)
 
+        async def _publish_batch(topic: str, payloads: Iterable[bytes]) -> None:
+            for payload in payloads:
+                await stub.publish(topic, payload)
+
         # Shadow the bound transport methods with instance attributes; the base Broker calls
-        # self._open / self._subscribe / self._publish, so these closures take over.
+        # self._open / self._subscribe / self._publish(_batch), so these closures take over. The
+        # batch closure routes through the stub even for brokers whose own `_publish_batch`
+        # bypasses `_publish` to hit a native transport.
         broker._open = _open  # type: ignore[method-assign]
         broker._close = _close  # type: ignore[method-assign]
         broker._subscribe = _subscribe  # type: ignore[method-assign]
         broker._publish = _publish  # type: ignore[method-assign]
+        broker._publish_batch = _publish_batch  # type: ignore[method-assign]
 
     def _unpatch(self) -> None:
         instance_attrs = vars(self._broker)

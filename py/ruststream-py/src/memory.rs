@@ -62,7 +62,7 @@ impl PyMemoryBroker {
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             let subscriber = inner.subscribe(topic.as_str());
             let (rx, cancel) = pump_subscriber(subscriber);
-            Python::with_gil(|py| -> PyResult<Py<PyAny>> {
+            Python::attach(|py| -> PyResult<Py<PyAny>> {
                 let obj = Py::new(py, PySubscriber::new(rx, cancel))?;
                 Ok(obj.into_any())
             })
@@ -91,7 +91,7 @@ impl PyMemoryBroker {
                 .expect_published(topic.as_str(), count, timeout_dur)
                 .await
                 .map_err(|err| to_pyerr(&err))?;
-            Python::with_gil(|py| -> PyResult<Py<PyAny>> {
+            Python::attach(|py| -> PyResult<Py<PyAny>> {
                 let list = PyList::empty(py);
                 for msg in messages {
                     list.append(raw_message_to_pydict(py, &msg)?)?;
@@ -117,7 +117,7 @@ impl PyMemoryBroker {
 
 fn raw_message_to_pydict(py: Python<'_>, msg: &RawMessage) -> PyResult<Py<PyAny>> {
     let dict = PyDict::new(py);
-    dict.set_item("topic", msg.topic())?;
+    dict.set_item("topic", msg.name())?;
     dict.set_item("payload", PyBytes::new(py, msg.payload()))?;
     dict.set_item("headers", headers_to_pydict(py, msg.headers())?)?;
     Ok(dict.into_any().unbind())

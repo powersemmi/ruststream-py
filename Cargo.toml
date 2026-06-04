@@ -6,7 +6,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 rust-version = "1.85"
 license = "Apache-2.0"
@@ -17,14 +17,14 @@ authors = ["RustStream contributors"]
 ruststream-pyo3 = { path = "crates/ruststream-pyo3" }
 
 # Single facade crate. Sibling layout assumed: ruststream/ next to ruststream-py/.
-# Flip the path to a crates.io version range once ruststream 0.1 is published.
+# Flip the path to a crates.io version range once ruststream 0.2 is published.
 # Members enable the features they need via `features = [...]` on top of this base spec.
-ruststream = { version = ">=0.1.0, <0.2.0", path = "../ruststream", default-features = false }
+ruststream = { version = ">=0.2.0, <0.3.0", path = "../ruststream", default-features = false }
 
 bytes = "1"
 futures = "0.3"
-pyo3 = { version = "0.24", features = ["abi3-py311"] }
-pyo3-async-runtimes = { version = "0.24", features = ["tokio-runtime"] }
+pyo3 = { version = "0.28", features = ["abi3-py311"] }
+pyo3-async-runtimes = { version = "0.28", features = ["tokio-runtime"] }
 thiserror = "2"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "signal"] }
 tokio-util = { version = "0.7", features = ["rt"] }
